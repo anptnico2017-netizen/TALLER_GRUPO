@@ -1,56 +1,61 @@
 package Taller;
 import java.time.LocalDate;
 public class Main {
-    public static void main(String[] args) {
-        Inventario bodega = new Inventario(3500.0, 150.0);
+    static void main() {
+        Inventario inventario = new Inventario(4000.0, 150.0);
 
-        Producto mouse = new ProductoElectronico(
-                    "EL-101",
-                    "Mouse Inalámbrico Ergo",
-                    "Electrónica",
-                    14.5,
-                    26.0,
-                    20,
-                    6,
-                    LocalDate.of(2026, 11, 21),
-                    "Distribuidora And",
-                    "Logitech",
-                    24
-            );
+        Producto teclado = new ProductoElectronico(
+                "P01",
+                "Teclado Mecanico",
+                "Electronico",
+                30.0,
+                50.0,
+                10,
+                4,
+                LocalDate.of(2026, 11, 21),
+                "Proveedor A",
+                "Redragon",
+                12
+        );
 
-            Producto adaptador = new ProductoAccesorio(
-                    "AC-204",
-                    "Adaptador HDMI a uno VGA",
-                    "Accesorios",
-                    5.0,
-                    11.5,
-                    4,
-                    8,
-                    LocalDate.of(2026, 11, 21),
-                    "Importadora Nort",
-                    "Adaptador de vid"
-            );
+        Producto cable = new ProductoAccesorio(
+                "P02",
+                "Cable USB",
+                "Accesorio",
+                5.0,
+                10.0,
+                3,
+                6,
+                LocalDate.of(2026, 11, 21),
+                "Proveedor B",
+                "Cable"
+        );
 
-            bodega.registrarProducto(mouse);
-            bodega.registrarProducto(adaptador);
+        boolean reg1 = inventario.registrarProducto(teclado);
+        boolean reg2 = inventario.registrarProducto(cable);
+        System.out.println("Registros: " + reg1 + ", " + reg2);
 
-            System.out.println("Catalogo inicial");
-            bodega.mostrarProductos();
+        System.out.println("Productos registrados:");
+        inventario.mostrarProductos();
 
-            System.out.println("Alertas reposicion");
-            bodega.mostrarProductosBajoStock();
+        System.out.println("Bajo stock:");
+        inventario.mostrarProductosBajoStock();
 
-            bodega.realizarCompra("AC-204", 12);
-            bodega.registrarSalida("EL-101", 5);
+        boolean compraOk = inventario.realizarCompra("P02", 8);
+        boolean entradaOk = inventario.registrarEntrada("P01", 2);
+        boolean salidaOk = inventario.registrarSalida("P01", 4);
+        boolean elimOk = inventario.eliminarProducto("P02");
 
-            System.out.println("Catalogo actualizado");
-            bodega.mostrarProductos();
+        System.out.println("Compra: " + compraOk + " | Entrada: " + entradaOk + " | Salida: " + salidaOk + " | Eliminar P02: " + elimOk);
 
-            System.out.println("Historial movimientos");
-            bodega.mostrarMovimientos();
+        System.out.println("Los productos finales:");
+        inventario.mostrarProductos();
 
-            System.out.println("Saldo de presupuesto: " + bodega.getPresupuestoDisponible());
-            System.out.println("Ocupación: " + bodega.getEspacioOcupado() + "/" + bodega.getCapacidadMaxima());
-            System.out.println("Valor total: " + bodega.getCostoTotalInventario());
-        }
+        System.out.println("Movimientos:");
+        inventario.mostrarMovimientos();
+
+        System.out.println("Presupuesto disponible: " + inventario.getPresupuestoDisponible());
+        System.out.println("El espacio esta ocupado: " + inventario.getEspacioOcupado() + "/" + inventario.getCapacidadMaxima());
+        System.out.println("Costo total del inventario: " + inventario.getCostoTotalInventario());
     }
+}

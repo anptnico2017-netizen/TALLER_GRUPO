@@ -1,218 +1,223 @@
 package Taller;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 public class Inventario {
-        private List<Producto> productos;
-        private List<MovimientoInventario> movimientos;
-        private double presupuestoDisponible;
-        private double costoTotalInventario;
-        private double capacidadMaxima;
-        private double espacioOcupado;
-        public Inventario(double presupuestoDisponible, double capacidadMaxima) {
-            this.productos = new ArrayList<>();
-            this.movimientos = new ArrayList<>();
-            this.presupuestoDisponible = presupuestoDisponible > 0 ? presupuestoDisponible : 0;
-            this.capacidadMaxima = capacidadMaxima > 0 ? capacidadMaxima : 0;
-            this.espacioOcupado = 0;
-            this.costoTotalInventario = 0;
+    private final ArrayList<Producto> productos;
+    private final ArrayList<MovimientoInventario> movimientos;
+    private double presupuestoDisponible;
+    private double costoTotalInventario;
+    private final double capacidadMaxima;
+    private double espacioOcupado;
+    public Inventario(double presupuestoDisponible, double capacidadMaxima) {
+        this.productos = new ArrayList<>();
+        this.movimientos = new ArrayList<>();
+        this.presupuestoDisponible = presupuestoDisponible;
+        this.capacidadMaxima = capacidadMaxima;
+        this.espacioOcupado = 0;
+        this.costoTotalInventario = 0;
+    }
+    public boolean registrarProducto(Producto producto) {
+        if (producto == null) {
+            return false;
         }
-        private void anexarMovimiento(String codigo, String tipo, int ingreso, int salida) {
-            MovimientoInventario registro = new MovimientoInventario(codigo, tipo, ingreso, salida, LocalDate.now());
-            if (registro.registrarMovimiento()) {
-                movimientos.add(registro);
-            }
+        if (producto.getCodigo() == null || producto.getCodigo().isEmpty()
+                || producto.getNombre() == null || producto.getNombre().isEmpty()
+                || producto.getCategoria() == null || producto.getCategoria().isEmpty()
+                || producto.getProveedor() == null || producto.getProveedor().isEmpty()
+                || producto.getFechaIngreso() == null) {
+            return false;
         }
-        private void actualizarMetricas() {
-            this.costoTotalInventario = calcularValorTotalInventario();
+        if (producto.getPrecioCompra() <= 0 || producto.getPrecioVenta() <= 0
+                || producto.getStockActual() < 0 || producto.getStockMinimo() < 0) {
+            return false;
         }
-        public boolean registrarProducto(Producto producto) {
-            if (producto == null || buscarProducto(producto.getCodigo()) != null) {
-                return false;
-            }
-            boolean textosOk = producto.getCodigo() != null && !producto.getCodigo().isBlank()
-                    && producto.getNombre() != null && !producto.getNombre().isBlank()
-                    && producto.getCategoria() != null && !producto.getCategoria().isBlank()
-                    && producto.getProveedor() != null && !producto.getProveedor().isBlank()
-                    && producto.getFechaIngreso() != null;
-            boolean numerosOk = producto.getPrecioCompra() > 0
-                    && producto.getPrecioVenta() > 0
-                    && producto.getStockActual() >= 0
-                    && producto.getStockMinimo() >= 0;
-            if (!textosOk || !numerosOk) {
-                return false;
-            }
-            double costoInicial = producto.getStockActual() * producto.getPrecioCompra();
-            double espacioRequerido = producto.getStockActual();
-
-            if (!verificarPresupuesto(costoInicial) || !verificarEspacio(espacioRequerido)) {
-                return false;
-            }
-            productos.add(producto);
-            presupuestoDisponible -= costoInicial;
-            espacioOcupado += espacioRequerido;
-            actualizarMetricas();
-
-            if (producto.getStockActual() > 0) {
-                anexarMovimiento(producto.getCodigo(), "Alta", producto.getStockActual(), 0);
-            }
-            return true;
+        if (buscarProducto(producto.getCodigo()) != null) {
+            return false;
         }
 
-        public Producto buscarProducto(String codigo) {
-            if (codigo == null || codigo.isBlank()) {
-                return null;
+        double costoInicial = producto.getStockActual() * producto.getPrecioCompra();
+        double espacioNecesario = producto.getStockActual();
+
+        if (!verificarPresupuesto(costoInicial) || !verificarEspacio(espacioNecesario)) {
+            return false;
+        }
+
+        productos.add(producto);
+        presupuestoDisponible -= costoInicial;
+        espacioOcupado += espacioNecesario;
+        calcularValorTotalInventario();
+
+        if (producto.getStockActual() > 0) {
+            MovimientoInventario mov = new MovimientoInventario(
+                    producto.getCodigo(),
+                    "Registro",
+                    producto.getStockActual(),
+                    0,
+                    LocalDate.now()
+            );
+            if (mov.registrarMovimiento()) {
+                movimientos.add(mov);
             }
-            int indice = 0;
-            while (indice < productos.size()) {
-                Producto actual = productos.get(indice);
-                if (actual.getCodigo().equalsIgnoreCase(codigo)) {
-                    return actual;
-                }
-                indice++;
-            }
+        }
+        return true;
+    }
+
+    public Producto buscarProducto(String codigo) {
+        if (codigo == null) {
             return null;
         }
-
-        public boolean eliminarProducto(String codigo) {
-            Producto objetivo = buscarProducto(codigo);
-            if (objetivo == null) {
-                return false;
-            }
-            espacioOcupado -= objetivo.getStockActual();
-            if (espacioOcupado < 0) {
-                espacioOcupado = 0;
-            }
-            boolean eliminado = productos.remove(objetivo);
-            actualizarMetricas();
-            return eliminado;
-        }
-
-        public boolean registrarEntrada(String codigo, int cantidad) {
-            Producto prod = buscarProducto(codigo);
-            if (prod == null || cantidad <= 0 || !verificarEspacio(cantidad)) {
-                return false;
-            }
-            if (!prod.aumentarStock(cantidad)) {
-                return false;
-            }
-            espacioOcupado += cantidad;
-            actualizarMetricas();
-            anexarMovimiento(prod.getCodigo(), "Ingreso", cantidad, 0);
-            return true;
-        }
-
-        public boolean registrarSalida(String codigo, int cantidad) {
-            Producto prod = buscarProducto(codigo);
-            if (prod == null || cantidad <= 0) {
-                return false;
-            }
-            if (!prod.disminuirStock(cantidad)) {
-                return false;
-            }
-            espacioOcupado -= cantidad;
-            if (espacioOcupado < 0) {
-                espacioOcupado = 0;
-            }
-            actualizarMetricas();
-            anexarMovimiento(prod.getCodigo(), "Salida", 0, cantidad);
-            return true;
-        }
-
-        public boolean realizarCompra(String codigo, int cantidad) {
-            Producto prod = buscarProducto(codigo);
-            if (prod == null || cantidad <= 0) {
-                return false;
-            }
-            double totalCompra = prod.getPrecioCompra() * cantidad;
-            if (!verificarPresupuesto(totalCompra) || !verificarEspacio(cantidad)) {
-                return false;
-            }
-            if (!prod.aumentarStock(cantidad)) {
-                return false;
-            }
-            presupuestoDisponible -= totalCompra;
-            espacioOcupado += cantidad;
-            actualizarMetricas();
-            anexarMovimiento(prod.getCodigo(), "Compra", cantidad, 0);
-            return true;
-        }
-
-        public void mostrarProductos() {
-            if (productos.isEmpty()) {
-                System.out.println("Inventario sin artículos no se puede.");
-                return;
-            }
-            Iterator<Producto> it = productos.iterator();
-            while (it.hasNext()) {
-                System.out.println(it.next().mostrarInformacion());
+        for (Producto p : productos) {
+            if (p.getCodigo().equalsIgnoreCase(codigo)) {
+                return p;
             }
         }
+        return null;
+    }
 
-        public void mostrarMovimientos() {
-            if (movimientos.isEmpty()) {
-                System.out.println("Sin movimientos.");
-                return;
-            }
-            Iterator<MovimientoInventario> it = movimientos.iterator();
-            while (it.hasNext()) {
-                System.out.println(it.next().mostrarMovimiento());
-            }
+    public boolean eliminarProducto(String codigo) {
+        Producto p = buscarProducto(codigo);
+        if (p == null) {
+            return false;
         }
-
-        public void mostrarProductosBajoStock() {
-            int contador = 0;
-            for (int i = 0; i < productos.size(); i++) {
-                Producto item = productos.get(i);
-                if (item.reposicion()) {
-                    System.out.println(item.mostrarInformacion());
-                    contador++;
-                }
-            }
-            if (contador == 0) {
-                System.out.println("Todos los productos superan su stock .");
-            }
+        espacioOcupado -= p.getStockActual();
+        if (espacioOcupado < 0) {
+            espacioOcupado = 0;
         }
+        productos.remove(p);
+        calcularValorTotalInventario();
+        return true;
+    }
 
-        public double calcularValorTotalInventario() {
-            double acumulado = 0.0;
-            for (int i = 0; i < productos.size(); i++) {
-                acumulado += productos.get(i).calcularValorInventario();
-            }
-            this.costoTotalInventario = acumulado;
-            return acumulado;
+    public boolean registrarEntrada(String codigo, int cantidad) {
+        Producto p = buscarProducto(codigo);
+        if (p == null || cantidad <= 0 || !verificarEspacio(cantidad)) {
+            return false;
         }
-
-        public boolean verificarPresupuesto(double costo) {
-            return costo >= 0.0 && this.presupuestoDisponible >= costo;
+        if (!p.aumentarStock(cantidad)) {
+            return false;
         }
+        espacioOcupado += cantidad;
+        calcularValorTotalInventario();
 
-        public boolean verificarEspacio(double espacio) {
-            return espacio >= 0.0 && (this.espacioOcupado + espacio) <= this.capacidadMaxima;
+        MovimientoInventario mov = new MovimientoInventario(
+                p.getCodigo(),
+                "Entrada",
+                cantidad,
+                0,
+                LocalDate.now()
+        );
+        if (mov.registrarMovimiento()) {
+            movimientos.add(mov);
         }
+        return true;
+    }
 
-        public List<Producto> getProductos() {
-            return productos;
+    public boolean registrarSalida(String codigo, int cantidad) {
+        Producto p = buscarProducto(codigo);
+        if (p == null || cantidad <= 0) {
+            return false;
         }
-
-        public List<MovimientoInventario> getMovimientos() {
-            return movimientos;
+        if (!p.disminuirStock(cantidad)) {
+            return false;
         }
-
-        public double getPresupuestoDisponible() {
-            return presupuestoDisponible;
+        espacioOcupado -= cantidad;
+        if (espacioOcupado < 0) {
+            espacioOcupado = 0;
         }
+        calcularValorTotalInventario();
 
-        public double getCostoTotalInventario() {
-            return costoTotalInventario;
+        MovimientoInventario mov = new MovimientoInventario(
+                p.getCodigo(),
+                "Salisa",
+                0,
+                cantidad,
+                LocalDate.now()
+        );
+        if (mov.registrarMovimiento()) {
+            movimientos.add(mov);
         }
+        return true;
+    }
 
-        public double getCapacidadMaxima() {
-            return capacidadMaxima;
+    public boolean realizarCompra(String codigo, int cantidad) {
+        Producto p = buscarProducto(codigo);
+        if (p == null || cantidad <= 0) {
+            return false;
         }
+        double costo = cantidad * p.getPrecioCompra();
+        if (!verificarPresupuesto(costo) || !verificarEspacio(cantidad)) {
+            return false;
+        }
+        if (!p.aumentarStock(cantidad)) {
+            return false;
+        }
+        presupuestoDisponible -= costo;
+        espacioOcupado += cantidad;
+        calcularValorTotalInventario();
 
-        public double getEspacioOcupado() {
-            return espacioOcupado;
+        MovimientoInventario mov = new MovimientoInventario(
+                p.getCodigo(),
+                "Compra",
+                cantidad,
+                0,
+                LocalDate.now()
+        );
+        if (mov.registrarMovimiento()) {
+            movimientos.add(mov);
+        }
+        return true;
+    }
+
+    public void mostrarProductos() {
+        for (Producto p : productos) {
+            System.out.println(p.mostrarInformacion());
         }
     }
+
+    public void mostrarMovimientos() {
+        for (MovimientoInventario m : movimientos) {
+            System.out.println(m.mostrarMovimiento());
+        }
+    }
+
+    public void mostrarProductosBajoStock() {
+        for (Producto p : productos) {
+            if (p.reposicion()) {
+                System.out.println(p.mostrarInformacion());
+            }
+        }
+    }
+
+    public double calcularValorTotalInventario() {
+        double total = 0;
+        for (Producto p : productos) {
+            total += p.calcularValorInventario();
+        }
+        costoTotalInventario = total;
+        return costoTotalInventario;
+    }
+
+    public boolean verificarPresupuesto(double costo) {
+        return costo >= 0 && costo <= presupuestoDisponible;
+    }
+
+    public boolean verificarEspacio(double espacio) {
+        return espacio >= 0 && (espacioOcupado + espacio) <= capacidadMaxima;
+    }
+
+    public double getPresupuestoDisponible() {
+        return presupuestoDisponible;
+    }
+
+    public double getCostoTotalInventario() {
+        return costoTotalInventario;
+    }
+
+    public double getCapacidadMaxima() {
+        return capacidadMaxima;
+    }
+
+    public double getEspacioOcupado() {
+        return espacioOcupado;
+    }
+}
