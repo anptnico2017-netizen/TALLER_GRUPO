@@ -6,10 +6,12 @@ public class ProductoAccesorio extends Producto {
         super(codigo, nombre, categoria, precioCompra, precioVenta, stockActual, stockMinimo, fechaIngreso, proveedor);
         this.tipoAccesorio = tipoAccesorio;
     }
+    /*Corrigele o cambiale ahi nose :v*/
     @Override
     public String mostrarInformacion() {
-        return super.mostrarInformacion() + " | Tipo accesorio: " + tipoAccesorio;
+        return super.mostrarInformacion() + " | Tipo accesorio: " + getTipoAccesorio();
     }
+
     public String getTipoAccesorio() {
         return tipoAccesorio;
     }

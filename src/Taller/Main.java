@@ -3,7 +3,6 @@ import java.time.LocalDate;
 public class Main {
     static void main() {
         Inventario inventario = new Inventario(4000.0, 150.0);
-
         Producto teclado = new ProductoElectronico(
                 "P01",
                 "Teclado Mecanico",
@@ -48,14 +47,14 @@ public class Main {
 
         System.out.println("Compra: " + compraOk + " | Entrada: " + entradaOk + " | Salida: " + salidaOk + " | Eliminar P02: " + elimOk);
 
-        System.out.println("Los productos finales:");
+        System.out.println("Productos finales:");
         inventario.mostrarProductos();
 
         System.out.println("Movimientos:");
         inventario.mostrarMovimientos();
 
         System.out.println("Presupuesto disponible: " + inventario.getPresupuestoDisponible());
-        System.out.println("El espacio esta ocupado: " + inventario.getEspacioOcupado() + "/" + inventario.getCapacidadMaxima());
-        System.out.println("Costo total del inventario: " + inventario.getCostoTotalInventario());
+        System.out.println("Espacio ocupado: " + inventario.getEspacioOcupado() + "/" + inventario.getCapacidadMaxima());
+        System.out.println("Costo total inventario: " + inventario.getCostoTotalInventario());
     }
 }

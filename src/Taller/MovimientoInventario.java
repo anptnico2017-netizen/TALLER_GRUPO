@@ -13,14 +13,12 @@ public class MovimientoInventario {
         this.cantidadSalida = cantidadSalida;
         this.fechaMovimiento = fechaMovimiento;
     }
-
     public boolean registrarMovimiento() {
         return codigoProducto != null && !codigoProducto.isEmpty()
                 && tipoMovimiento != null && !tipoMovimiento.isEmpty()
                 && fechaMovimiento != null
                 && cantidadIngreso >= 0 && cantidadSalida >= 0;
     }
-
     public String mostrarMovimiento() {
         return "Fecha: " + fechaMovimiento
                 + " | Codigo: " + codigoProducto

@@ -2,12 +2,13 @@ package Taller;
 import java.time.LocalDate;
 import java.util.ArrayList;
 public class Inventario {
-    private final ArrayList<Producto> productos;
-    private final ArrayList<MovimientoInventario> movimientos;
+    private ArrayList<Producto> productos;
+    private ArrayList<MovimientoInventario> movimientos;
     private double presupuestoDisponible;
     private double costoTotalInventario;
-    private final double capacidadMaxima;
+    private double capacidadMaxima;
     private double espacioOcupado;
+
     public Inventario(double presupuestoDisponible, double capacidadMaxima) {
         this.productos = new ArrayList<>();
         this.movimientos = new ArrayList<>();
@@ -16,6 +17,7 @@ public class Inventario {
         this.espacioOcupado = 0;
         this.costoTotalInventario = 0;
     }
+
     public boolean registrarProducto(Producto producto) {
         if (producto == null) {
             return false;
@@ -45,7 +47,7 @@ public class Inventario {
         productos.add(producto);
         presupuestoDisponible -= costoInicial;
         espacioOcupado += espacioNecesario;
-        calcularValorTotalInventario();
+        costoTotalInventario = calcularValorTotalInventario();
 
         if (producto.getStockActual() > 0) {
             MovimientoInventario mov = new MovimientoInventario(
@@ -84,7 +86,7 @@ public class Inventario {
             espacioOcupado = 0;
         }
         productos.remove(p);
-        calcularValorTotalInventario();
+        costoTotalInventario = calcularValorTotalInventario();
         return true;
     }
 
@@ -97,7 +99,7 @@ public class Inventario {
             return false;
         }
         espacioOcupado += cantidad;
-        calcularValorTotalInventario();
+        costoTotalInventario = calcularValorTotalInventario();
 
         MovimientoInventario mov = new MovimientoInventario(
                 p.getCodigo(),
@@ -124,11 +126,11 @@ public class Inventario {
         if (espacioOcupado < 0) {
             espacioOcupado = 0;
         }
-        calcularValorTotalInventario();
+        costoTotalInventario = calcularValorTotalInventario();
 
         MovimientoInventario mov = new MovimientoInventario(
                 p.getCodigo(),
-                "Salisa",
+                "Salida",
                 0,
                 cantidad,
                 LocalDate.now()
@@ -153,7 +155,7 @@ public class Inventario {
         }
         presupuestoDisponible -= costo;
         espacioOcupado += cantidad;
-        calcularValorTotalInventario();
+        costoTotalInventario = calcularValorTotalInventario();
 
         MovimientoInventario mov = new MovimientoInventario(
                 p.getCodigo(),

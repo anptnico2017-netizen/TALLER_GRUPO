@@ -10,6 +10,7 @@ public class Producto {
     private int stockMinimo;
     private LocalDate fechaIngreso;
     private String proveedor;
+
     public Producto(String codigo, String nombre, String categoria, double precioCompra, double precioVenta, int stockActual, int stockMinimo, LocalDate fechaIngreso, String proveedor) {
         this.codigo = codigo;
         this.nombre = nombre;
@@ -21,6 +22,7 @@ public class Producto {
         this.fechaIngreso = fechaIngreso;
         this.proveedor = proveedor;
     }
+
     public boolean aumentarStock(int cantidad) {
         if (cantidad <= 0) {
             return false;
@@ -28,6 +30,7 @@ public class Producto {
         stockActual += cantidad;
         return true;
     }
+
     public boolean disminuirStock(int cantidad) {
         if (cantidad <= 0 || cantidad > stockActual) {
             return false;
@@ -35,6 +38,7 @@ public class Producto {
         stockActual -= cantidad;
         return true;
     }
+
     public double calcularValorInventario() {
         return stockActual * precioCompra;
     }
