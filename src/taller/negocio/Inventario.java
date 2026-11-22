@@ -1,4 +1,7 @@
-package Taller;
+package taller.negocio;
+import taller.modelo.MovimientoInventario;
+import taller.modelo.Producto;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 public class Inventario {

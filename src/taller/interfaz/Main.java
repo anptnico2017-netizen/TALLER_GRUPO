@@ -1,4 +1,9 @@
-package Taller;
+package taller.interfaz;
+import taller.negocio.Inventario;
+import taller.modelo.Producto;
+import taller.modelo.ProductoAccesorio;
+import taller.modelo.ProductoElectronico;
+
 import java.time.LocalDate;
 public class Main {
     static void main() {

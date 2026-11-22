@@ -1,4 +1,5 @@
-package Taller;
+package taller.modelo;
+
 import java.time.LocalDate;
 public class ProductoElectronico extends Producto {
     private String marca;

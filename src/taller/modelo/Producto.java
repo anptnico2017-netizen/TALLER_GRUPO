@@ -1,4 +1,4 @@
-package Taller;
+package taller.modelo;
 import java.time.LocalDate;
 public class Producto {
     private String codigo;
